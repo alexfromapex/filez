@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="{{language}}">
+    <head>
+        <title>{{title}}</title>
+    </head>
+    <body>
+        <h1>Files in {{ current_directory }}</h1>
+        <table>
+            <tr>
+                <thead>Filename</thead>
+                <thead>Size</thead>
+            </tr>
+            {% for file in filez %}
+            <tr>
+                <td>{{file.name}}</td>
+                <td>{{file.size}}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </body>
+</html>
