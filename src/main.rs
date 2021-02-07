@@ -4,7 +4,7 @@
 extern crate rocket_contrib;
 extern crate askama;
 
-use std::fs::{self,Metadata};
+use std::fs::{self};
 use std::path::PathBuf;
 use rocket_contrib::serve::StaticFiles;
 use askama::Template;
