@@ -5,9 +5,11 @@
         <style type="text/css">
             html *::selection {
                 background: #33cc93;
+                color: #000;
             }
             html *::-moz-selection {
                 background: #00aa60;
+                color: #000;
             }
             .files-table {
                 width: 100%;
@@ -25,6 +27,7 @@
             <thead>
                 <tr>
                     <th align="left">Filename</th>
+                    <th align="left">Last Modified</th>
                     <th align="left">Size</th>
                 </tr>
             </thead>
@@ -34,6 +37,7 @@
                     <td>
                         <a href="{{file.shortname}}">{{ file.name }}</a>
                     </td>
+                    <td>{{file.modified}}</td>
                     <td>{{file.size}}</td>
                 </tr>
                 {% endfor %}

@@ -12,4 +12,4 @@ rocket_contrib = "0.4.6"
 rocket-include-static-resources = "0.9.5"
 askama = { version = "0.10", default-features = false, features = ["with-rocket", "mime", "mime_guess"] }
 askama_rocket = "0.10.0"
-pathdiff = "0.2.0"
+chrono = "0.4.19"
