@@ -2,20 +2,42 @@
 <html lang="{{language}}">
     <head>
         <title>{{title}}</title>
+        <style type="text/css">
+            html *::selection {
+                background: #33cc93;
+            }
+            html *::-moz-selection {
+                background: #00aa60;
+            }
+            .files-table {
+                width: 100%;
+            }
+            .files-table a,
+            .files-table a:visited,
+            .files-table a:active {
+                color: #00aa60;
+            }
+        </style>
     </head>
     <body>
         <h1>Files in {{ current_directory }}</h1>
-        <table>
-            <tr>
-                <thead>Filename</thead>
-                <thead>Size</thead>
-            </tr>
-            {% for file in filez %}
-            <tr>
-                <td>{{file.name}}</td>
-                <td>{{file.size}}</td>
-            </tr>
-            {% endfor %}
+        <table class="files-table">
+            <thead>
+                <tr>
+                    <th align="left">Filename</th>
+                    <th align="left">Size</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for file in filez %}
+                <tr>
+                    <td>
+                        <a href="{{file.shortname}}">{{ file.name }}</a>
+                    </td>
+                    <td>{{file.size}}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
         </table>
     </body>
 </html>

@@ -330,6 +330,7 @@ version = "0.1.0"
 dependencies = [
  "askama",
  "askama_rocket",
+ "pathdiff",
  "rocket",
  "rocket-include-static-resources",
  "rocket_contrib",
@@ -737,6 +738,12 @@ name = "opaque-debug"
 version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2839e79665f131bdb5782e51f2c6c9599c133c6098982a54c794358bf432529c"
+
+[[package]]
+name = "pathdiff"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "877630b3de15c0b64cc52f659345724fbf6bdad9bd9566699fc53688f3c34a34"
 
 [[package]]
 name = "pear"
