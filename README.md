@@ -20,5 +20,6 @@
 ## License info
 - [License](LICENSE.md)
 
+![Filez Screenshot of File List](https://user-images.githubusercontent.com/1907805/107863671-2004de00-6e24-11eb-8593-6bf213472ff6.png)
 
-![Filez Screenshot](https://user-images.githubusercontent.com/1907805/107860652-66e7d900-6e0e-11eb-814d-eb8dd2162d95.png)
+![Filez Screenshot of File View](https://user-images.githubusercontent.com/1907805/107863702-54789a00-6e24-11eb-91d6-936a24554960.png)
