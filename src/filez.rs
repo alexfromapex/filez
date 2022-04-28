@@ -3,11 +3,13 @@ extern crate chrono;
 
 use std::fs::{self};
 use std::path::{PathBuf};
-use askama::Template;
+
+use askama_rocket::Template;
+
 use rocket::response::content::Html;
-use rocket::response::{NamedFile};
+use rocket::fs::NamedFile;
 use rocket::response::status::{NotFound};
-use rocket::http::RawStr;
+
 use chrono::offset::Utc;
 use chrono::DateTime;
 
@@ -17,6 +19,12 @@ struct File {
     size: String,
     modified: String,
     // isdir: bool
+}
+
+#[derive(Responder)]
+pub enum FileReturnType {
+    LIST(Html<String>),
+    FILE(NamedFile)
 }
 
 #[derive(Template)]
@@ -45,16 +53,15 @@ fn bytes_to_readable(size: u64) -> String {
     }
 }
 
-fn show_filez(location: String) -> NamedFile {
+async fn show_filez(location: String) -> Option<NamedFile> {
     let file = PathBuf::from(&location);
-    NamedFile::open(&file).unwrap()
+    NamedFile::open(PathBuf::from(".").join(&file)).await.ok()
 }
 
 fn list_filez(location: String) -> Html<String> {
-    let base_dir = PathBuf::from(".");
-    let relative = &base_dir.join(&location);
-    let paths = fs::read_dir(&relative).unwrap();
-    let canonical_dir = fs::canonicalize(&relative).unwrap().display().to_string();
+    let base_dir = fs::canonicalize(PathBuf::from(".")).unwrap();
+    let fully_qualified = fs::canonicalize(&location).unwrap().display().to_string();
+    let paths = fs::read_dir(&fully_qualified).unwrap();
     let mut file_list: Vec<File> = Vec::new();
     let mut _p;
     let mut _metadata;
@@ -66,9 +73,10 @@ fn list_filez(location: String) -> Html<String> {
         _metadata = fs::metadata(&_p).unwrap();
         _file_size = _metadata.len();
         _datetime = _metadata.modified().unwrap().into();
+
         file_list.push(File {
             name: PathBuf::from(&_p).display().to_string(),
-            shortname: String::from(PathBuf::from(&_p).strip_prefix(&canonical_dir).unwrap().to_str().unwrap()),
+            shortname: format!("/{}", PathBuf::from(&_p).strip_prefix(&base_dir).unwrap().display().to_string()),
             size: bytes_to_readable(_file_size),
             modified: format!("{} UTC", _datetime.format("%m/%d/%Y %T")),
             // isdir: PathBuf::from(&_p).is_dir()
@@ -78,7 +86,7 @@ fn list_filez(location: String) -> Html<String> {
     let t = FileListTemplate{
         title: "Filez",
         language: "en",
-        current_directory: &canonical_dir,
+        current_directory: &fully_qualified,
         filez: &file_list
     };
     let rendered_page = t.render();
@@ -90,36 +98,55 @@ fn list_filez(location: String) -> Html<String> {
     }
 }
 
-fn render_from_path(p: PathBuf) -> Result<Html<String>, Result<NamedFile, NotFound<&'static str>>> {
-    let relative_string = fs::canonicalize(&p).expect("Cannot expand path");
+async fn render_from_path(p: PathBuf) -> Result<FileReturnType, NotFound<&'static str>> {
+    let err_msg = format!("Cannot expand path {}", &p.to_str().unwrap());
+    let relative_string = fs::canonicalize(&p).expect(&err_msg);
+
+    let result: FileReturnType;
     
     match &p.exists() & &p.is_dir() {
         true => {
             let file_list = list_filez(String::from(relative_string.to_str().unwrap()));
-            Ok(file_list)
+            result = FileReturnType::LIST(file_list);
+            Ok(result)
         },
         false => {
             match &p.exists() {
                 true => {
-                    let file_view = show_filez(String::from(relative_string.to_str().unwrap()));
-                    Err(Ok(file_view))
+                    let file = show_filez(String::from(relative_string.to_str().unwrap())).await.unwrap();
+                    result = FileReturnType::FILE(file);
+                    Ok(result)
                 },
-                false => Err(Err(NotFound("File or directory not found")))
+                false => {
+                    let not_found = NotFound("File or directory not found");
+                    Err(not_found)
+                }
             }
         }
     }
 }
 
 #[get("/")]
-pub fn index() -> Result<Html<String>, Result<NamedFile, NotFound<&'static str>>> {
-    let root_dir = PathBuf::from("./");
-    render_from_path(root_dir)
+pub async fn index() -> Result<FileReturnType, NotFound<&'static str>> {
+    let root_dir = PathBuf::from(".");
+
+    let rendered = render_from_path(root_dir).await;
+
+    match rendered {
+        Ok(value) => Ok(value),
+        Err(value) => Err(value)
+    }
 }
 
-#[get("/<relative_path>")]
-pub fn filez(relative_path: &RawStr) -> Result<Html<String>, Result<NamedFile, NotFound<&'static str>>> {
-    let root_dir = PathBuf::from("./");
-    let url = String::from(&relative_path.to_string());
-    let full_path = root_dir.join(&url);
-    render_from_path(full_path)
+#[get("/<relative_path..>")]
+pub async fn filez(relative_path: PathBuf) -> Result<FileReturnType, NotFound<&'static str>> {
+    let root_dir = PathBuf::from(".").canonicalize().unwrap();
+    let full_path = root_dir.join(&relative_path.to_str().unwrap());
+
+    let rendered = render_from_path(full_path).await;
+
+    match rendered {
+        Ok(result) => Ok(result),
+        Err(not_found) => Err(not_found)
+    }
 }
